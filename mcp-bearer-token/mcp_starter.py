@@ -1,22 +1,35 @@
-from fastmcp.server.transport.http import CORSMiddleware
 import os
 import datetime
 from typing import Annotated
 from dotenv import load_dotenv
 import google.generativeai as genai
-from mcp_server import McpServer, McpTool, Field
+
+# --- CORRECTED IMPORTS ---
+from fastmcp import McpServer, McpTool
+from pydantic import Field
+from starlette.middleware.cors import CORSMiddleware
+# --- END CORRECTED IMPORTS ---
 
 # --- SETUP ---
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-mcp = McpServer()
+
+# Use the full server name from the starter kit for max compatibility
+mcp = McpServer(
+    name="AI Oracle",
+    title="🔮 AI Oracle",
+)
+
+# Add the CORS middleware to allow the web browser to connect
 mcp.app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
+
 # --- DATA CALCULATION LOGIC ---
 def calculate_profile_data(dob_string: str) -> dict:
     day, month, year = map(int, dob_string.split('-'))
@@ -39,7 +52,7 @@ def calculate_profile_data(dob_string: str) -> dict:
     elements = {'Aries': 'Fire', 'Taurus': 'Earth', 'Gemini': 'Air', 'Cancer': 'Water', 'Leo': 'Fire', 'Virgo': 'Earth', 'Libra': 'Air', 'Scorpio': 'Water', 'Sagittarius': 'Fire', 'Capricorn': 'Earth', 'Aquarius': 'Air', 'Pisces': 'Water'}
     
     sum_digits = sum(int(digit) for digit in f"{day}{month}{year}")
-    while sum_digits > 9:
+    while sum_digits > 9 and sum_digits not in [11, 22, 33]:
         sum_digits = sum(int(digit) for digit in str(sum_digits))
     
     return {
@@ -48,7 +61,8 @@ def calculate_profile_data(dob_string: str) -> dict:
     }
 
 # --- PROMPT TEMPLATES ---
-# (You can copy your full detailed prompts here later, these are summaries for speed)
+# You will need to paste your full, detailed prompts back in here.
+# I am using summaries for now so you can test the structure.
 def master_prompt(profile_data: dict) -> str:
     return f"Generate a 6-part personal blueprint for a user with these traits: {profile_data}"
 def explore_career_prompt(profile_data: dict, career: str) -> str:
@@ -61,12 +75,12 @@ def life_path_prompt(profile_data: dict) -> str:
     return f"Generate a detailed deep dive on Life Path number {profile_data['lifePathNumber']}."
 
 # --- MCP TOOLS ---
-@mcp.tool(description="Validates the server for the Puch AI hackathon.")
+@mcp.tool()
 async def validate(token: Annotated[str, Field(description="The bearer token.")]) -> dict:
     return {"phone_number": os.getenv("MY_NUMBER")}
 
 async def run_gemini_prompt(prompt_text: str) -> str:
-    model = genai.GenerativeModel('gemini-2.0-flash')
+    model = genai.GenerativeModel('gemini-1.5-flash')
     response = await model.generate_content_async(prompt_text)
     return response.text
 
