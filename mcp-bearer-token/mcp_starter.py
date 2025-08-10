@@ -16,7 +16,6 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 mcp = Server(
     name="AI Oracle",
-    title="🔮 AI Oracle",
 )
 
 # Add the CORS middleware to allow the web browser to connect
@@ -121,4 +120,4 @@ async def lifepath(dob: str) -> str:
 
 # --- MAIN EXECUTION ---
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(host="0.0.0.0", port=int(os.getenv("PORT", 8086)))
