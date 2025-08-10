@@ -1,3 +1,4 @@
+from fastmcp.server.transport.http import CORSMiddleware
 import os
 import datetime
 from typing import Annotated
@@ -9,7 +10,13 @@ from mcp_server import McpServer, McpTool, Field
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 mcp = McpServer()
-
+mcp.app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 # --- DATA CALCULATION LOGIC ---
 def calculate_profile_data(dob_string: str) -> dict:
     day, month, year = map(int, dob_string.split('-'))
