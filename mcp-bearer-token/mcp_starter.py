@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 
 # --- CORRECTED IMPORTS BASED ON THE LIBRARIES ---
-from mcp.server import McpServer
+from mcp.server import Server
 from pydantic import Field
 from starlette.middleware.cors import CORSMiddleware
 # --- END CORRECTED IMPORTS ---
@@ -14,7 +14,7 @@ from starlette.middleware.cors import CORSMiddleware
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-mcp = McpServer(
+mcp = Server(
     name="AI Oracle",
     title="🔮 AI Oracle",
 )
