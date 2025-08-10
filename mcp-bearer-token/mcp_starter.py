@@ -59,7 +59,7 @@ async def validate(token: Annotated[str, Field(description="The bearer token.")]
     return {"phone_number": os.getenv("MY_NUMBER")}
 
 async def run_gemini_prompt(prompt_text: str) -> str:
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.0-flash')
     response = await model.generate_content_async(prompt_text)
     return response.text
 
