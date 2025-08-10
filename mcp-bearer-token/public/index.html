@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Oracle | FuturePalz</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .tool-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #results {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background-color: #fafafa;
+            white-space: pre-wrap; /* Allows line breaks and formatting */
+            min-height: 100px;
+            line-height: 1.6;
+        }
+        .loader {
+            text-align: center;
+            font-style: italic;
+            color: #888;
+        }
+        .error {
+            color: #d93025;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔮 AI Oracle</h1>
+        <p style="text-align:center;">Your personal guide to the cosmos. Built for the Puch AI Hackathon.</p>
+        
+        <div class="tool-section">
+            <h2>Personal Blueprint Profile</h2>
+            <label for="dob-profile">Your Birthdate (dd-mm-yyyy):</label>
+            <input type="text" id="dob-profile" placeholder="e.g., 15-10-1998">
+            <button onclick="getProfile()">Get My Blueprint</button>
+        </div>
+
+        <div class="tool-section">
+            <h2>Cosmic Compatibility</h2>
+            <label for="dob1-compare">Person A's Birthdate (dd-mm-yyyy):</label>
+            <input type="text" id="dob1-compare" placeholder="e.g., 15-10-1998">
+            <label for="dob2-compare">Person B's Birthdate (dd-mm-yyyy):</label>
+            <input type="text" id="dob2-compare" placeholder="e.g., 22-03-1999">
+            <button onclick="getComparison()">Check Compatibility</button>
+        </div>
+
+        <div class="tool-section">
+            <h2>Daily Cosmic Focus</h2>
+            <label for="dob-daily">Your Birthdate (dd-mm-yyyy):</label>
+            <input type="text" id="dob-daily" placeholder="e.g., 15-10-1998">
+            <button onclick="getDaily()">Get My Daily Reading</button>
+        </div>
+        
+        <h2>Oracle's Response</h2>
+        <div id="results"><div class="loader">The cosmos is waiting for your query...</div></div>
+    </div>
+
+    <script>
+        const API_URL = "https://futurepalz-puchai2.onrender.com/mcp/"; // Your live Render URL!
+        const AUTH_TOKEN = "abcd952930";
+        const resultsDiv = document.getElementById('results');
+
+        async function callOracle(method, params) {
+            resultsDiv.innerHTML = `<div class="loader">Consulting the cosmos...</div>`;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AUTH_TOKEN}`,
+                        'Accept': 'application/json, text/event-stream'
+                    },
+                    body: JSON.stringify({
+                        jsonrpc: "2.0",
+                        puch_user_id: `webapp-user-${Date.now()}`,
+                        method: method,
+                        params: params,
+                        id: 1
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+                
+                // Assuming the actual content is in result.content or just result
+                const content = data.result.content || data.result;
+                resultsDiv.innerText = content;
+
+            } catch (error) {
+                console.error("Error calling Oracle:", error);
+                resultsDiv.innerHTML = `<div class="error">An error occurred: ${error.message}</div>`;
+            }
+        }
+        
+        function getProfile() {
+            const dob = document.getElementById('dob-profile').value;
+            if (!dob) { alert("Please enter a birthdate."); return; }
+            callOracle('profile', { dob: dob });
+        }
+
+        function getComparison() {
+            const dob1 = document.getElementById('dob1-compare').value;
+            const dob2 = document.getElementById('dob2-compare').value;
+            if (!dob1 || !dob2) { alert("Please enter both birthdates."); return; }
+            callOracle('compare', { dob1: dob1, dob2: dob2 });
+        }
+
+        function getDaily() {
+            const dob = document.getElementById('dob-daily').value;
+            if (!dob) { alert("Please enter a birthdate."); return; }
+            callOracle('daily', { dob: dob });
+        }
+    </script>
+</body>
+</html>

@@ -4,8 +4,8 @@ from typing import Annotated
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-# --- CORRECTED IMPORTS ---
-from fastmcp import McpServer, McpTool
+# --- CORRECTED IMPORTS BASED ON THE LIBRARIES ---
+from mcp.server import McpServer
 from pydantic import Field
 from starlette.middleware.cors import CORSMiddleware
 # --- END CORRECTED IMPORTS ---
@@ -14,7 +14,6 @@ from starlette.middleware.cors import CORSMiddleware
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# Use the full server name from the starter kit for max compatibility
 mcp = McpServer(
     name="AI Oracle",
     title="🔮 AI Oracle",
@@ -61,17 +60,25 @@ def calculate_profile_data(dob_string: str) -> dict:
     }
 
 # --- PROMPT TEMPLATES ---
-# You will need to paste your full, detailed prompts back in here.
-# I am using summaries for now so you can test the structure.
+# You can paste your full, detailed prompts here. I'm using summaries.
 def master_prompt(profile_data: dict) -> str:
+    # PASTE YOUR FULL masterPrompt TEXT HERE
     return f"Generate a 6-part personal blueprint for a user with these traits: {profile_data}"
+
 def explore_career_prompt(profile_data: dict, career: str) -> str:
+    # PASTE YOUR FULL exploreCareerPrompt TEXT HERE
     return f"Generate a 4-part detailed career exploration for a {profile_data['zodiacSign']} exploring the career of {career}."
+
 def compare_prompt(p1: dict, p2: dict) -> str:
+    # PASTE YOUR FULL comparePrompt TEXT HERE
     return f"Generate a 4-part compatibility report for a {p1['zodiacSign']} and a {p2['zodiacSign']}."
+
 def daily_reading_prompt(profile_data: dict) -> str:
+    # PASTE YOUR FULL dailyReadingPrompt TEXT HERE
     return f"Generate a short, positive daily focus for a {profile_data['zodiacSign']}."
+
 def life_path_prompt(profile_data: dict) -> str:
+    # PASTE YOUR FULL lifePathPrompt TEXT HERE
     return f"Generate a detailed deep dive on Life Path number {profile_data['lifePathNumber']}."
 
 # --- MCP TOOLS ---
@@ -80,7 +87,7 @@ async def validate(token: Annotated[str, Field(description="The bearer token.")]
     return {"phone_number": os.getenv("MY_NUMBER")}
 
 async def run_gemini_prompt(prompt_text: str) -> str:
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.0-flash')
     response = await model.generate_content_async(prompt_text)
     return response.text
 
@@ -112,5 +119,6 @@ async def lifepath(dob: str) -> str:
     profile_data = calculate_profile_data(dob)
     return await run_gemini_prompt(life_path_prompt(profile_data))
 
+# --- MAIN EXECUTION ---
 if __name__ == "__main__":
     mcp.run()
